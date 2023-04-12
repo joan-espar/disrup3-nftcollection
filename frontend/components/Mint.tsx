@@ -100,7 +100,7 @@ const Mint = () => {
   return (
     <section className="m-0-auto flex justify-center">
         <div className="mt-5 ml-5 mr-5 mb-5 bg-gray-900 p-2 rounded-sm border-2 border-gray-100  sm:w-[70%] lg:max-w-[30%]">
-            <h2 className="text-center pb-2 text-2xl">Mint your Mr crypto</h2>
+            <h2 className="text-center pb-2 text-2xl">Mint your Mr.Grypto</h2>
             <img  src="mrc.png" alt="" />
 
             <div className="flex items-center justify-between p-1 mt-2">
