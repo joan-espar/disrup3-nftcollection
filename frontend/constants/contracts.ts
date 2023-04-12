@@ -1,4 +1,4 @@
-export const assistanceContract  = {
+export const nftContract  = {
   address: "0xEA648CA28A27682C6D2069e52c7F5FDaAA48be3e",
   abi:[
     {

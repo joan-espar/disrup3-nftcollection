@@ -4,6 +4,10 @@ import { supportedChains } from '@/constants/supportedChains';
 import { ethers } from 'ethers';
 import { create } from 'zustand'
 
+declare global {
+  interface Window { ethereum: any }
+}
+
 interface IWeb3State {
     address: string;
     isConnected: boolean;
