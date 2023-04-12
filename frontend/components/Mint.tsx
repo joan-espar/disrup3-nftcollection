@@ -2,6 +2,7 @@ import { nftContract } from "@/constants/contracts";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useWeb3Store } from "@/stores/web3Store";
+import GreenRedIndicator from "./GreenRedIndicator";
 
 const Mint = () => {
 
@@ -13,11 +14,13 @@ const Mint = () => {
     const [ maxNftPerAddress, setMaxNftPerAddress] = useState(0);
     const [ nftsMinted, setNftsMinted] = useState(0);
     const [ isWhitelisted, setIsWhitelisted] = useState(false);
+    const [ isPaused, setIsPaused] = useState(false);
     const [ pricePerNft, setPricePerNft] = useState(0);
     const [cantidad, setCantidad] = useState(0);
+    const [balance, setBalance] = useState(0);
 
     async function addCantidad() {
-        setCantidad(Math.min(cantidad + 1, 10))
+        setCantidad(Math.min(cantidad + 1, maxNftPerAddress - nftsMinted))
     }
     async function subtractCantidad() {
         setCantidad(Math.max(cantidad - 1, 0))
@@ -48,21 +51,31 @@ const Mint = () => {
         setIsWhitelisted(await contract.isWhitelisted(address)) 
     }
 
+    async function getIsPaused() {
+        if(!contract) return
+        setIsPaused(await contract.paused()) 
+    }
+
     async function getPricePerNft() {
         if(!contract) return
         setPricePerNft(Number(await contract.pricePerNft()))
+    }
+
+    async function getBalance() {
+        if(!contract || !provider) return
+        setBalance(Number(await provider.getBalance(address)))
     }
 
 
     async function mint() {
         if(!contract) return
         console.log()
-        await contract.mint(cantidad, {value: pricePerNft * cantidad})
+        await contract.mint(cantidad, {value: BigInt(pricePerNft) * BigInt(cantidad)})
     }
 
 
     useEffect(() => {
-        if (typeof window == "undefined" || !provider) {  
+        if (typeof window == "undefined" || !provider) {
             console.log("fail useEffect")
             return
          };
@@ -74,17 +87,11 @@ const Mint = () => {
             getMaxSupply()
             getTotalSupply()
             getIsWhitelisted()
+            getIsPaused()
             getMaxNftPerAddress() 
             getNftsMinted()
             getPricePerNft()
-            console.log("-----------------")
-            console.log(maxSupply)
-            console.log(totalSupply)
-            console.log(isWhitelisted)
-            console.log(maxNftPerAddress)
-            console.log(nftsMinted)
-            console.log(pricePerNft)
-            console.log("-----------------")
+            getBalance()
         }
         fetchData()
 
@@ -97,7 +104,7 @@ const Mint = () => {
             <img  src="mrc.png" alt="" />
 
             <div className="flex items-center justify-between p-1 mt-2">
-                <p>Total Supply:</p>
+                <p>Total Supply / Max Supply:</p>
                 <p>{totalSupply} / {maxSupply}</p>
             </div>
 
@@ -127,11 +134,26 @@ const Mint = () => {
                 <p>{ethers.utils.formatEther(BigInt(pricePerNft) * BigInt(cantidad))} ETH</p> 
             </div>
 
+            <div className="flex items-right justify-between p-1 mt-2">
+                <GreenRedIndicator value={isWhitelisted} text={isWhitelisted ? "Whitelisted" : "NOT Whitelisted"}/>
+                <GreenRedIndicator value={isPaused == false} text={isPaused ? "Contract Paused" : "Contract Active"}/>
+            </div>
+            <div className="flex items-right justify-between p-1 mt-2">
+                <GreenRedIndicator value={balance >= pricePerNft * cantidad} text={balance >= pricePerNft * cantidad ? "Enough Balance" : "NOT Enough Balance"}/>
+                <GreenRedIndicator value={maxNftPerAddress > nftsMinted} text={maxNftPerAddress > nftsMinted ? `${maxNftPerAddress - nftsMinted} nft available` : "Minted all"}/>
+            </div>
+
             <div className="flex items-center justify-between p-1 mt-2">
-                <p></p>
+                {/* <p>Your Balance: {ethers.utils.formatEther(BigInt((balance / 1e15) * 1e15))} ETH</p> */}
+                <p>Your Balance: {ethers.utils.formatEther(BigInt(Math.floor(balance / 1e15)*1e15))} ETH</p>
 
                 <div className="flex items-center justify-center">
-                    <button className="text-2xl bg-orange-400 pl-3 pr-3 rounded-sm" onClick={mint}> MINT </button>
+                    {isWhitelisted 
+                        ? isPaused == false 
+                            ? <button className="text-2xl bg-green-500 pl-3 pr-3 rounded-sm" onClick={mint}> MINT </button>
+                            : <button className="text-2xl bg-red-500 pl-3 pr-3 rounded-sm"> Contract Paused </button>
+                        : <button className="text-2xl bg-red-500 pl-3 pr-3 rounded-sm"> Not Whitelisted </button>
+                     }
                 </div>
             </div>
 
