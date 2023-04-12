@@ -148,9 +148,11 @@ const Mint = () => {
                 <p>Your Balance: {ethers.utils.formatEther(BigInt(Math.floor(balance / 1e15)*1e15))} ETH</p>
 
                 <div className="flex items-center justify-center">
-                    {isWhitelisted 
+                    {isWhitelisted
                         ? isPaused == false 
-                            ? <button className="text-2xl bg-green-500 pl-3 pr-3 rounded-sm" onClick={mint}> MINT </button>
+                            ? balance >= pricePerNft * cantidad
+                                ? <button className="text-2xl bg-green-500 pl-3 pr-3 rounded-sm" onClick={mint}> MINT </button>
+                                : <button className="text-2xl bg-red-500 pl-3 pr-3 rounded-sm"> Not Enough Balance </button>
                             : <button className="text-2xl bg-red-500 pl-3 pr-3 rounded-sm"> Contract Paused </button>
                         : <button className="text-2xl bg-red-500 pl-3 pr-3 rounded-sm"> Not Whitelisted </button>
                      }
